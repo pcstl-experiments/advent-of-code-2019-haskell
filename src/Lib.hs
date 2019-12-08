@@ -13,16 +13,17 @@ naiveFuelRequirement mass = max 0 ((mass `div` 3) - 2)
 moduleFuelRequirements :: Integer -> [Integer]
 moduleFuelRequirements = tail . iterate naiveFuelRequirement
 
--- gets the sum of a possibly infinite strictly decreasing list
-sumDecreasing :: [Integer] -> Integer
-sumDecreasing l = sumDecreasing' l 0
-  where sumDecreasing' (x:xs) acc
-          | x > 0     = sumDecreasing' xs (x+acc)
+-- gets the sum of a possibly infinite list,
+-- stopping when a zero is found
+sumUntilZero :: [Integer] -> Integer
+sumUntilZero l = sumUntilZero' l 0
+  where sumUntilZero' (x:xs) acc
+          | x > 0     = sumUntilZero' xs (x+acc)
           | otherwise = acc
 
 -- computes the full fuel requirements for a given mass
 moduleFuelRequirement :: Integer -> Integer
-moduleFuelRequirement = sumDecreasing . moduleFuelRequirements
+moduleFuelRequirement = sumUntilZero . moduleFuelRequirements
 
 -- gets the mass of a single module from the input
 getModuleMass :: IO (Maybe Integer)
