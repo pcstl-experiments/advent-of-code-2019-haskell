@@ -1,5 +1,5 @@
-module Lib
-    ( totalFuelRequirements
+module Day1
+    ( day1Main
     ) where
 
 import System.IO (isEOF)
@@ -42,3 +42,6 @@ totalFuelRequirements = addFurtherRequirements 0
         maybe
           (pure acc)
           (\mass -> addFurtherRequirements $ acc + (moduleFuelRequirement mass))
+
+day1Main :: IO ()
+day1Main = (show <$> totalFuelRequirements) >>= putStrLn
