@@ -2,12 +2,11 @@ module Day2
   ( day2Main
   ) where
 
-import Data.Array          (Array, (//), listArray, (!), elems)
+import Data.Array          (Array, (//), listArray, (!))
 import Data.Maybe          (fromJust)
 import Control.Monad.State (State, state, get, execState)
 import Control.DeepSeq     (deepseq)
 import System.IO           (getContents)
-import Debug.Trace
 
 type Program = Array Int Int
 type Args = Maybe (Int, Int, Int)
@@ -88,18 +87,34 @@ runFun :: (Int -> Int -> Int)
 runFun fun (l, r, out) (IState prog pos h) =
   let newProg = prog // [(out, fun l r)] in ((), IState newProg pos h)
 
-patchProgram :: Program -> Program
-patchProgram program =
-  program // [(1, 12), (2, 2)]
+patchProgram :: Int -> Int -> Program -> Program
+patchProgram x y program  =
+  program // [(1, x), (2, y)]
 
-patchAndRun :: Program -> InterpreterState
-patchAndRun program =
-  let patchedProgram = patchProgram program
+patchAndRun :: Int -> Int -> Program -> InterpreterState
+patchAndRun x y program =
+  let patchedProgram = patchProgram x y program
       initialState   = initialInterpreterState patchedProgram
   in execState runInstructions initialState
 
-printResult :: [Int] -> IO ()
-printResult = putStrLn . show
+testParams :: Program -> Int -> Int -> Int
+testParams program x y =
+  (runningProgram $ patchAndRun x y program) ! 0
+
+target = 19690720
+
+bruteForce :: Program -> (Int, Int)
+bruteForce prog = bruteForce' prog 0 0
+  where bruteForce' p x y
+          | x >  99 && y <= 99 = bruteForce' p 0 (y+1)
+          | x <= 99 && y <= 99 =
+            if testParams p x y == target
+            then (x,y)
+            else bruteForce' p (x+1) y
+          | otherwise = error "Possibilities exhausted."
+
+getAnswer :: (Int, Int) -> Int
+getAnswer (noun, verb) = 100 * noun + verb
 
 getProgram :: IO Program
 getProgram = do
@@ -109,4 +124,4 @@ getProgram = do
 day2Main :: IO ()
 day2Main = do
   program <- getProgram
-  printResult $ (elems . runningProgram) (patchAndRun program)
+  putStrLn (show $ (getAnswer . bruteForce) program)
